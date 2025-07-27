@@ -5,6 +5,7 @@ const boardElement = document.querySelector(".chessboard");
 let draggedPiece = null;
 let sourceSquare = null;
 let playerRole = null;
+let highlightedSquares = [];
 
 const renderBoard = () => {
     const board = chess.board();
@@ -20,6 +21,11 @@ const renderBoard = () => {
 
             squareElement.dataset.row = rowIndex;
             squareElement.dataset.col = squareindex;
+
+            // Highlight valid moves
+            if (highlightedSquares.some(sq => sq.row === rowIndex && sq.col === squareindex)) {
+                squareElement.classList.add("highlight-move");
+            }
 
             if (square) {
                 const pieceElement = document.createElement("div");
@@ -37,11 +43,25 @@ const renderBoard = () => {
                         draggedPiece = pieceElement;
                         sourceSquare = { row: rowIndex, col: squareindex };
                         e.dataTransfer.setData("text/plain", "");
+                        highlightMoves(rowIndex, squareindex);
                     }
                 });
                 pieceElement.addEventListener("dragend", (e) => {
                     draggedPiece = null;
                     sourceSquare = null;
+                    clearHighlights();
+                });
+                pieceElement.addEventListener("click", (e) => {
+                    if (playerRole === square.color) {
+                        if (highlightedSquares.length && sourceSquare && sourceSquare.row === rowIndex && sourceSquare.col === squareindex) {
+                            // Deselect if clicking the same piece
+                            clearHighlights();
+                            sourceSquare = null;
+                        } else {
+                            sourceSquare = { row: rowIndex, col: squareindex };
+                            highlightMoves(rowIndex, squareindex);
+                        }
+                    }
                 });
 
                 squareElement.appendChild(pieceElement);
@@ -60,6 +80,21 @@ const renderBoard = () => {
                         col: parseInt(squareElement.dataset.col)
                     };
                     handleMove(sourceSquare, targetSource);
+                    clearHighlights();
+                }
+            });
+
+            squareElement.addEventListener("click", (e) => {
+                if (highlightedSquares.length && sourceSquare) {
+                    const target = {
+                        row: parseInt(squareElement.dataset.row),
+                        col: parseInt(squareElement.dataset.col)
+                    };
+                    // If clicked square is a valid move
+                    if (highlightedSquares.some(sq => sq.row === target.row && sq.col === target.col)) {
+                        handleMove(sourceSquare, target);
+                        clearHighlights();
+                    }
                 }
             });
 
@@ -90,6 +125,23 @@ const handleMove = (source, target) => {
     }
 };
 
+function highlightMoves(row, col) {
+    highlightedSquares = [];
+    const from = `${String.fromCharCode(97 + col)}${8 - row}`;
+    const moves = chess.moves({ square: from, verbose: true });
+    highlightedSquares = moves.map(move => {
+        const targetCol = move.to.charCodeAt(0) - 97;
+        const targetRow = 8 - parseInt(move.to[1]);
+        return { row: targetRow, col: targetCol };
+    });
+    renderBoard();
+}
+
+function clearHighlights() {
+    highlightedSquares = [];
+    renderBoard();
+}
+
 const getPieceUnicode = (piece) => {
     const unicodePiece = {
         p: { w: "♙", b: "♟" },
@@ -105,22 +157,22 @@ const getPieceUnicode = (piece) => {
 // Socket events
 socket.on("playerRole", (role) => {
     playerRole = role;
-    renderBoard();
+    clearHighlights();
 });
 
 socket.on("spectatorRole", () => {
     playerRole = null;
-    renderBoard();
+    clearHighlights();
 });
 
 socket.on("boardState", (fen) => {
     chess.load(fen);
-    renderBoard();
+    clearHighlights();
 });
 
 socket.on("move", (move) => {
     chess.move(move);
-    renderBoard();
+    clearHighlights();
 });
 
 // Initial render
