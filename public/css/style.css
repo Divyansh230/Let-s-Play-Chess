@@ -1,0 +1,361 @@
+/* Enhanced Chess Board Styles */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+}
+
+/* Animated background particles */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+    animation: float 20s ease-in-out infinite;
+    z-index: -1;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    gap: 30px;
+}
+
+.game-header {
+    text-align: center;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.game-title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s ease-in-out infinite;
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+    margin-bottom: 10px;
+}
+
+@keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.game-subtitle {
+    font-size: clamp(1rem, 3vw, 1.25rem);
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 300;
+}
+
+.board-container {
+    perspective: 1000px;
+    padding: 20px;
+}
+
+.chessboard {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    width: min(90vw, 90vh, 600px);
+    height: min(90vw, 90vh, 600px);
+    max-width: 600px;
+    max-height: 600px;
+    border: 8px solid #8B4513;
+    border-radius: 12px;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.4),
+        0 0 0 4px rgba(255, 255, 255, 0.1),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+    background: linear-gradient(145deg, #8B4513, #A0522D);
+    transform: rotateX(5deg) rotateY(2deg);
+    transition: transform 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.chessboard:hover {
+    transform: rotateX(0deg) rotateY(0deg) scale(1.02);
+}
+
+.chessboard.flipped {
+    transform: rotateX(5deg) rotateY(2deg) rotateZ(180deg);
+}
+
+.chessboard.flipped:hover {
+    transform: rotateX(0deg) rotateY(0deg) rotateZ(180deg) scale(1.02);
+}
+
+/* Board coordinates */
+.chessboard::before {
+    content: '';
+    position: absolute;
+    inset: -30px;
+    background: linear-gradient(45deg, transparent 49%, rgba(255, 255, 255, 0.1) 50%, transparent 51%);
+    pointer-events: none;
+    opacity: 0.3;
+}
+
+.square {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.square::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(145deg, transparent, rgba(255, 255, 255, 0.1));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.square:hover::before {
+    opacity: 1;
+}
+
+.square.light {
+    background: linear-gradient(145deg, #f0d9b5, #e8d1a8);
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.square.dark {
+    background: linear-gradient(145deg, #b58863, #a67c52);
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.square:hover {
+    transform: translateZ(5px);
+    box-shadow: 
+        0 8px 16px rgba(0, 0, 0, 0.3),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+.piece {
+    font-size: clamp(24px, 6vw, 48px);
+    cursor: grab;
+    user-select: none;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    position: relative;
+    z-index: 2;
+    transform-style: preserve-3d;
+}
+
+.piece::before {
+    content: attr(data-piece);
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    color: rgba(0, 0, 0, 0.3);
+    z-index: -1;
+    filter: blur(1px);
+}
+
+.piece.white {
+    color: #ffffff;
+    text-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.5),
+        0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.piece.black {
+    color: #1a1a1a;
+    text-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.8),
+        0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.piece:hover {
+    transform: translateY(-8px) scale(1.1) rotateY(15deg);
+    filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.4));
+    z-index: 10;
+}
+
+.piece:active,
+.piece.dragging {
+    cursor: grabbing;
+    transform: translateY(-12px) scale(1.15) rotate(5deg);
+    filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.5));
+    opacity: 0.8;
+}
+
+.flipped .piece {
+    transform: rotateZ(180deg);
+}
+
+.flipped .piece:hover {
+    transform: rotateZ(180deg) translateY(-8px) scale(1.1) rotateY(15deg);
+}
+
+.flipped .piece:active,
+.flipped .piece.dragging {
+    transform: rotateZ(180deg) translateY(-12px) scale(1.15) rotate(5deg);
+}
+
+/* Piece glow effects */
+.piece.white:hover {
+    text-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(255, 255, 255, 0.6),
+        0 0 40px rgba(255, 255, 255, 0.3);
+}
+
+.piece.black:hover {
+    text-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.8),
+        0 0 20px rgba(100, 100, 100, 0.6),
+        0 0 40px rgba(150, 150, 150, 0.3);
+}
+
+/* Drag and drop visual feedback */
+.square.drag-over {
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.3), transparent 70%) !important;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+        gap: 20px;
+    }
+
+    .board-container {
+        padding: 10px;
+    }
+
+    .chessboard {
+        border-width: 4px;
+        transform: rotateX(2deg) rotateY(1deg);
+    }
+
+    .chessboard:hover {
+        transform: rotateX(0deg) rotateY(0deg) scale(1.01);
+    }
+
+    .piece {
+        font-size: clamp(20px, 8vw, 36px);
+    }
+
+    .piece:hover {
+        transform: translateY(-4px) scale(1.05);
+    }
+}
+
+@media (max-width: 480px) {
+    .game-title {
+        font-size: 2rem;
+    }
+
+    .game-subtitle {
+        font-size: 1rem;
+    }
+
+    .chessboard {
+        border-width: 3px;
+        border-radius: 8px;
+    }
+
+    .piece {
+        font-size: clamp(18px, 10vw, 32px);
+    }
+}
+
+/* Loading animation */
+.chessboard.loading {
+    opacity: 0;
+    transform: rotateX(90deg);
+    animation: boardEntrance 1s ease-out forwards;
+}
+
+@keyframes boardEntrance {
+    to {
+        opacity: 1;
+        transform: rotateX(5deg) rotateY(2deg);
+    }
+}
+
+/* Enhanced piece shadows based on square color */
+.square.light .piece {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+
+.square.dark .piece {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+}
+
+/* Smooth transitions for board flipping */
+.chessboard {
+    transition: transform 0.8s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+/* Enhanced hover effects for squares */
+.square {
+    position: relative;
+    overflow: visible;
+}
+
+.square::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    border-radius: 4px;
+}
+
+.square:hover::after {
+    opacity: 1;
+}
+
+/* Additional utility classes for game states */
+.piece.draggable {
+    cursor: grab;
+}
+
+.piece.draggable:hover {
+    cursor: grab;
+}
+
+.piece.draggable:active {
+    cursor: grabbing;
+}
